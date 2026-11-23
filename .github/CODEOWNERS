@@ -1,0 +1,6 @@
+# Protect core MINTORA baseplate files - require Group Leader review
+/config/ @HirunVimukthi
+/includes/ @HirunVimukthi
+/auth/ @HirunVimukthi
+/sql/01_schema.sql @HirunVimukthi
+/index.php @HirunVimukthi

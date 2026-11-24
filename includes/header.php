@@ -6,6 +6,36 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 $loggedIn = isset($_SESSION['user_id']);
 $fullName = $loggedIn ? ($_SESSION['full_name'] ?? 'User') : '';
 $userRole = $loggedIn ? ($_SESSION['user_role'] ?? '') : '';
+$currentPage = $_SERVER['PHP_SELF'] ?? '';
+
+// Role-specific navigation links are kept in one place for consistent rendering.
+$roleLinks = [
+    'Freelancer' => [
+        'Dashboard' => '/mintora/freelancer/dashboard.php',
+        'Browse Projects' => '/mintora/freelancer/browse_projects.php',
+        'My Proposals' => '/mintora/freelancer/my_proposals.php',
+    ],
+    'Client' => [
+        'Dashboard' => '/mintora/client/dashboard.php',
+        'Post Project' => '/mintora/client/post_project.php',
+        'Manage Proposals' => '/mintora/client/manage_proposals.php',
+    ],
+    'Admin' => [
+        'Dashboard' => '/mintora/admin/dashboard.php',
+        'Manage Users' => '/mintora/admin/manage_users.php',
+        'Disputes' => '/mintora/admin/disputes.php',
+    ],
+    'Manager' => [
+        'Dashboard' => '/mintora/manager/dashboard.php',
+        'Analytics & Reports' => '/mintora/manager/reports.php',
+    ],
+];
+
+$visibleLinks = $loggedIn ? ($roleLinks[$userRole] ?? []) : [];
+$isActive = static function (string $path) use ($currentPage): bool {
+    return str_replace('\\', '/', $currentPage) === str_replace('\\', '/', $path)
+        || substr(str_replace('\\', '/', $currentPage), -strlen($path)) === $path;
+};
 ?>
 <!doctype html>
 <html lang="en">
@@ -35,6 +65,20 @@ $userRole = $loggedIn ? ($_SESSION['user_role'] ?? '') : '';
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link<?= $isActive('/mintora/index.php') ? ' active' : '' ?>"
+                       <?= $isActive('/mintora/index.php') ? 'aria-current="page"' : '' ?>
+                       href="/mintora/index.php">Home</a>
+                </li>
+                <?php foreach ($visibleLinks as $label => $path): ?>
+                    <li class="nav-item">
+                        <a class="nav-link<?= $isActive($path) ? ' active' : '' ?>"
+                           <?= $isActive($path) ? 'aria-current="page"' : '' ?>
+                           href="<?= htmlspecialchars($path) ?>"><?= htmlspecialchars($label) ?></a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
             <div class="ms-auto d-flex align-items-center gap-2 mt-3 mt-lg-0">
                 <?php if ($loggedIn): ?>
                     <span class="text-white fw-semibold"><?= htmlspecialchars($fullName) ?></span>
